@@ -4,3 +4,4 @@ Pillow
 numpy
 moviepy
 openai>=1.0.0
+openai-whisper
