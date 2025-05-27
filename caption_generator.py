@@ -145,7 +145,6 @@ import tempfile
 import subprocess
 import openai
 from openai import OpenAI
-import whisper
 import traceback
 
 # Baked in OpenAI API key
@@ -155,9 +154,29 @@ OPENAI_API_KEY = "sk-proj-7UUr0c-Ry-F3SxgYwkC7GaH0GGfGIpno6Zdxj4vknr1RDmuG_VBDxR
 ACCOUNT_OPTIONS = ["@yeabut40", "@father.moses", "@dr.rayguarendi", "@livingbreadradio", "@avemariaradio", "@drmarcuspeter"]
 
 def extract_audio_and_transcribe(audio_path):
-    model = whisper.load_model("tiny")
-    result = model.transcribe(audio_path)
-    return result["text"]
+    """
+    Transcribe audio/video using OpenAI Whisper API (cloud, not local).
+    Accepts file path (audio/video: mp3, mp4, wav, m4a, etc)
+    Returns transcript as string.
+    """
+    import openai
+    import os
+    client = openai.OpenAI(api_key=OPENAI_API_KEY)
+    file_ext = os.path.splitext(audio_path)[1].lower()
+    accepted_types = ['.mp3', '.mp4', '.wav', '.m4a']
+    if file_ext not in accepted_types:
+        return f"Error: Unsupported file format: {file_ext}. Please use mp3, mp4, wav, or m4a."
+
+    try:
+        with open(audio_path, "rb") as audio_file:
+            transcript = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file,
+                response_format="text"
+            )
+        return transcript
+    except Exception as e:
+        return f"Error during transcription: {e}"
 
 def generate_platform_captions(transcription, follow_account, selected_block="Main Catholic"):
     """Generate platform-specific captions based on the transcription and selected hashtag block"""
